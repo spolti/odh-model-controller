@@ -155,7 +155,8 @@ func (r *OpenshiftInferenceServiceReconciler) SetupWithManager(mgr ctrl.Manager)
 	// check if kserve is enabled, otherwise don't require Authorino.
 	enabled, err := utils.VerifyIfComponentIsEnabled(context.TODO(), r.client, "kserve")
 	if err != nil {
-		r.log.V(1).Error(err, "could not determine if kserve is enabled")
+		r.log.V(1).Error(err, "could not determine if kserve is enabled, default is enabled")
+		enabled = true
 	}
 
 	if enabled {
