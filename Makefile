@@ -34,7 +34,8 @@ help: ## Display this help.
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) rbac:roleName=odh-model-controller-role,headerFile="hack/manifests_boilerplate.yaml.txt" crd paths="./..." output:crd:artifacts:config=config/crd/bases
+	# Any customization needed, apply to the webhook_patch.yaml file
+	$(CONTROLLER_GEN) rbac:roleName=odh-model-controller-role,headerFile="hack/manifests_boilerplate.yaml.txt" crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 
 external-manifests: 
 	go get github.com/kserve/modelmesh-serving
@@ -84,7 +85,7 @@ run: manifests generate fmt vet ## Run a controller from your host.
 
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
-	docker build . -f ./Containerfile -t ${IMG}
+	podman build . --arch x86_64 -f ./Containerfile -t ${IMG}
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
