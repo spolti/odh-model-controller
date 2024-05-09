@@ -84,7 +84,7 @@ run: manifests generate fmt vet ## Run a controller from your host.
 
 .PHONY: docker-build
 docker-build: test ## Build docker image with the manager.
-	docker build . -f ./Containerfile -t ${IMG}
+	podman build . --arch x86_64 -f ./Containerfile -t ${IMG}
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
