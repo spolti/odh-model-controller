@@ -19,16 +19,15 @@ package main
 import (
 	"context"
 	"flag"
-	"os"
-	"strconv"
-
 	"github.com/opendatahub-io/odh-model-controller/controllers/webhook"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	knservingv1 "knative.dev/serving/pkg/apis/serving/v1"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	"strconv"
 
 	// to ensure that exec-entrypoint and run can make use of them.
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -204,7 +203,7 @@ func main() {
 		setupLog.Error(kserveWithMeshEnabledErr, "could not determine if kserve have service mesh enabled")
 	}
 
-	if kserveWithMeshEnabled {
+	if kserveWithMeshEnabled && isRunningInCluster() {
 		ksvcValidatorWebhookSetupErr := builder.WebhookManagedBy(mgr).
 			For(&knservingv1.Service{}).
 			WithValidator(webhook.NewKsvcValidator(mgr.GetClient())).
@@ -235,4 +234,12 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+// isRunningInCluster checks if the application is running in a Kubernetes cluster
+// by looking for the Kubernetes service account token file, useful for local tests `make run` for
+// quick tests that does not need to deploy the webhooks
+func isRunningInCluster() bool {
+	_, err := os.Stat("/var/run/secrets/kubernetes.io/serviceaccount/token")
+	return !os.IsNotExist(err)
 }
