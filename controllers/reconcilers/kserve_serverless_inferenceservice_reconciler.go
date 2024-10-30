@@ -17,6 +17,8 @@ package reconcilers
 
 import (
 	"context"
+	"fmt"
+	"github.com/opendatahub-io/odh-model-controller/controllers/constants"
 
 	"github.com/hashicorp/go-multierror"
 
@@ -60,8 +62,24 @@ func NewKServeServerlessInferenceServiceReconciler(client client.Client, clientR
 
 func (r *KserveServerlessInferenceServiceReconciler) Reconcile(ctx context.Context, log logr.Logger, isvc *kservev1beta1.InferenceService) error {
 	var reconcileErrors *multierror.Error
-	for _, reconciler := range r.subResourceReconcilers {
-		reconcileErrors = multierror.Append(reconcileErrors, reconciler.Reconcile(ctx, log, isvc))
+
+	fmt.Println(isvc.Generation)
+
+	// Check if the specific annotation has changed, if the generation is > 1 it indicates that the isvc is not new
+	// and was updated at some point
+	if _, ok := isvc.Annotations[constants.LabelEnableAuthODH]; ok && isvc.Generation > 1 {
+		fmt.Println("---- Authorino Annotation has changed - triggering the AuthConfig reconciler")
+		// Trigger only the NewKserveAuthConfigReconciler if the annotation is present.
+		for _, reconciler := range r.subResourceReconcilers {
+			if _, ok := reconciler.(*KserveAuthConfigReconciler); ok {
+				reconcileErrors = multierror.Append(reconcileErrors, reconciler.Reconcile(ctx, log, isvc))
+			}
+		}
+	} else {
+		// run all sub-reconcilers
+		for _, reconciler := range r.subResourceReconcilers {
+			reconcileErrors = multierror.Append(reconcileErrors, reconciler.Reconcile(ctx, log, isvc))
+		}
 	}
 
 	return reconcileErrors.ErrorOrNil()

@@ -203,7 +203,7 @@ func main() {
 		setupLog.Error(kserveWithMeshEnabledErr, "could not determine if kserve have service mesh enabled")
 	}
 
-	if kserveWithMeshEnabled {
+	if kserveWithMeshEnabled && isRunningInCluster() {
 		ksvcValidatorWebhookSetupErr := builder.WebhookManagedBy(mgr).
 			For(&knservingv1.Service{}).
 			WithValidator(webhook.NewKsvcValidator(mgr.GetClient())).
@@ -234,4 +234,12 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+// isRunningInCluster checks if the application is running in a Kubernetes cluster
+// by looking for the Kubernetes service account token file, useful for local tests `make run` for
+// quick tests that does not need to deploy the webhooks
+func isRunningInCluster() bool {
+	_, err := os.Stat("/var/run/secrets/kubernetes.io/serviceaccount/token")
+	return !os.IsNotExist(err)
 }

@@ -111,8 +111,39 @@ func (r *OpenshiftInferenceServiceReconciler) Reconcile(ctx context.Context, req
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *OpenshiftInferenceServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
+
+	//annotationPredicate := predicate.Funcs{
+	//	UpdateFunc: func(e event.UpdateEvent) bool {
+	//		oldAnnotations := e.ObjectOld.GetAnnotations()
+	//		newAnnotations := e.ObjectNew.GetAnnotations()
+	//
+	//		// ignore if the annotation is added or remove, which means, do not trigger the ISVC reconcile
+	//		// Check if an annotation was added
+	//		for key := range newAnnotations {
+	//			if _, exists := oldAnnotations[key]; !exists {
+	//				if key == constants.LabelEnableAuthODH {
+	//					return false
+	//				}
+	//			}
+	//		}
+	//
+	//		// Check if an annotation was removed
+	//		for key := range oldAnnotations {
+	//			if _, exists := newAnnotations[key]; !exists {
+	//				if key == constants.LabelEnableAuthODH {
+	//					return false
+	//				}
+	//			}
+	//		}
+	//
+	//		// No annotations were added or removed
+	//		return true
+	//	},
+	//}
+
 	builder := ctrl.NewControllerManagedBy(mgr).
 		For(&kservev1beta1.InferenceService{}).
+		// WithEventFilter(annotationPredicate).
 		Owns(&kservev1alpha1.ServingRuntime{}).
 		Owns(&corev1.Namespace{}).
 		Owns(&routev1.Route{}).
