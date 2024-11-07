@@ -2,7 +2,7 @@
 ARG SOURCE_CODE=.
 
 # Build the manager binary
-FROM registry.redhat.io/ubi8/go-toolset@sha256:4ec05fd5b355106cc0d990021a05b71bbfb9231e4f5bdc0c5316515edf6a1c96 as builder
+FROM registry.redhat.io/ubi8/go-toolset@sha256:bd2057262d0876188976f79d2246717994de9e03dd589b1e6471dd2b2777204f as builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -21,7 +21,7 @@ COPY controllers/ controllers/
 USER root
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
 
-FROM registry.redhat.io/ubi8/ubi-minimal@sha256:7583ca0ea52001562bd81a961da3f75222209e6192e4e413ee226cff97dbd48c AS runtime
+FROM registry.redhat.io/ubi8/ubi-minimal@sha256:c12e67af6a7e15113d76bc72f10bef2045c026c71ec8b7124c8a075458188a83 AS runtime
 
 ARG USER=2000
 
