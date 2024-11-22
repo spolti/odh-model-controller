@@ -47,6 +47,8 @@ import (
 	"github.com/opendatahub-io/odh-model-controller/controllers/utils"
 
 	nimv1 "github.com/opendatahub-io/odh-model-controller/api/nim/v1"
+
+	kserve "github.com/kserve/kserve/pkg/apis/serving/v1beta1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -224,6 +226,14 @@ func main() {
 
 	} else {
 		setupLog.Info("Skipping setup of Knative Service validating/mutating Webhook, because KServe Serverless setup seems to be disabled in the DataScienceCluster resource.")
+	}
+
+	if err = builder.WebhookManagedBy(mgr).
+		For(&kserve.InferenceService{}).
+		WithValidator(webhook.NewIsvcValidator(mgr.GetClient())).
+		Complete(); err != nil {
+		setupLog.Error(err, "unable to setup InferenceService validating Webhook")
+		os.Exit(1)
 	}
 
 	kclient, kcErr := kubernetes.NewForConfig(cfg)
