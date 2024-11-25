@@ -27,7 +27,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// +kubebuilder:webhook:admissionReviewVersions=v1beta1,path=/validate-isvc-v1beta1-service,mutating=false,failurePolicy=fail,groups="serving.kserve.io",resources=inferenceservices,verbs=create,versions=v1beta1,name=validating.isvc.odh-model-controller.opendatahub.io,sideEffects=None
+// +kubebuilder:webhook:admissionReviewVersions=v1beta1,path=/validate-serving-kserve-io-v1beta1-inferenceservice,mutating=false,failurePolicy=fail,groups="serving.kserve.io",resources=inferenceservices,verbs=create,versions=v1beta1,name=validating.isvc.odh-model-controller.opendatahub.io,sideEffects=None
 
 type isvcValidator struct {
 	client client.Client

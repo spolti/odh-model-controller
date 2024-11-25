@@ -10,7 +10,7 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-isvc-v1beta1-service
+      path: /validate-serving-kserve-io-v1beta1-inferenceservice
   failurePolicy: Fail
   name: validating.isvc.odh-model-controller.opendatahub.io
   rules:
