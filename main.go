@@ -228,10 +228,10 @@ func main() {
 		setupLog.Info("Skipping setup of Knative Service validating/mutating Webhook, because KServe Serverless setup seems to be disabled in the DataScienceCluster resource.")
 	}
 
-	if err = builder.WebhookManagedBy(mgr).
+	if isvcValidatorErr := builder.WebhookManagedBy(mgr).
 		For(&kserve.InferenceService{}).
 		WithValidator(webhook.NewIsvcValidator(mgr.GetClient())).
-		Complete(); err != nil {
+		Complete(); isvcValidatorErr != nil {
 		setupLog.Error(err, "unable to setup InferenceService validating Webhook")
 		os.Exit(1)
 	}
