@@ -1,6 +1,8 @@
 module github.com/opendatahub-io/odh-model-controller
 
-go 1.21
+go 1.23.0
+
+toolchain go1.23.6
 
 require (
 	github.com/go-logr/logr v1.3.0
@@ -33,8 +35,7 @@ require (
 
 require (
 	cloud.google.com/go v0.111.0 // indirect
-	cloud.google.com/go/compute v1.23.3 // indirect
-	cloud.google.com/go/compute/metadata v0.2.3 // indirect
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/iam v1.1.5 // indirect
 	cloud.google.com/go/storage v1.35.1 // indirect
 	github.com/aws/aws-sdk-go v1.48.0 // indirect
@@ -98,7 +99,6 @@ require (
 	golang.org/x/time v0.4.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/api v0.151.0 // indirect
-	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240116215550-a9fa1716bcac // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240116215550-a9fa1716bcac // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240116215550-a9fa1716bcac // indirect
@@ -125,11 +125,9 @@ replace (
 
 	// Fixes CVE-2024-45338
 	golang.org/x/net => golang.org/x/net v0.33.0
+	// Fixes CVE-2025-22868
+	golang.org/x/oauth2 => golang.org/x/oauth2 v0.27.0
 	// can be removed when the indirect depdency is in the same version or higher
 	// Fixes CVE-2024-24786 - Infinite loop in JSON unmarshaling in google.golang.org/protobuf
 	google.golang.org/protobuf => google.golang.org/protobuf v1.33.0
-	// Watch future versions of kserve where knative/serving will be updated.
-	// Fixes knative.dev/serving Uncontrolled Resource Consumption
-	// https://www.cve.org/CVERecord?id=CVE-2023-48713
-	knative.dev/serving => knative.dev/serving v0.39.3
 )
