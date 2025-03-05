@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/kuadrant/authorino/pkg/log"
 	"github.com/opendatahub-io/odh-model-controller/api/nim/v1"
 	"github.com/opendatahub-io/odh-model-controller/controllers/constants"
 	"github.com/opendatahub-io/odh-model-controller/controllers/utils"
@@ -35,11 +34,15 @@ import (
 	ssametav1 "k8s.io/client-go/applyconfigurations/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/reference"
+	"k8s.io/utils/semantic"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"strings"
 )
@@ -93,6 +96,19 @@ func (r *NimAccountReconciler) SetupWithManager(mgr ctrl.Manager, ctx context.Co
 				}
 				return requests
 			})).
+		WithEventFilter(predicate.Funcs{
+			UpdateFunc: func(e event.UpdateEvent) bool {
+				if oldSecret, isSecret := e.ObjectOld.(*corev1.Secret); isSecret {
+					newSecret := e.ObjectNew.(*corev1.Secret)
+					return !semantic.EqualitiesOrDie().DeepDerivative(oldSecret.Data, newSecret.Data)
+				}
+				if oldAccount, isAccount := e.ObjectOld.(*v1.Account); isAccount {
+					newAccount := e.ObjectNew.(*v1.Account)
+					return !semantic.EqualitiesOrDie().DeepEqual(oldAccount.Spec, newAccount.Spec)
+				}
+				return false
+			},
+		}).
 		Complete(r)
 }
 
