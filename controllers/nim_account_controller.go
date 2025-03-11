@@ -185,7 +185,7 @@ func (r *NimAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	meta.SetStatusCondition(&targetStatus.Conditions, makeAccountFailureCondition(account.Generation, runtimesOk))
 
 	// validate api key
-	if err := utils.ValidateApiKey(logger, apiKeyStr, availableRuntimes[0]); err != nil {
+	if err := utils.ValidateApiKey(logger, apiKeyStr, availableRuntimes); err != nil {
 		msg := "api key failed validation"
 		logger.Error(err, msg)
 		meta.SetStatusCondition(&targetStatus.Conditions, makeAccountFailureCondition(account.Generation, msg))
