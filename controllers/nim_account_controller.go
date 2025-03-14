@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/kuadrant/authorino/pkg/log"
 	"github.com/opendatahub-io/odh-model-controller/api/nim/v1"
 	"github.com/opendatahub-io/odh-model-controller/controllers/constants"
 	"github.com/opendatahub-io/odh-model-controller/controllers/utils"
@@ -35,11 +34,15 @@ import (
 	ssametav1 "k8s.io/client-go/applyconfigurations/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/reference"
+	"k8s.io/utils/semantic"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"strings"
 )
@@ -61,6 +64,10 @@ var (
 )
 
 func (r *NimAccountReconciler) SetupWithManager(mgr ctrl.Manager, ctx context.Context) error {
+	// TODO: Copied from original main.go... Should it be FromContext?
+	logger := ctrl.Log.WithName("controllers").WithName("AccountControllerSetup")
+	log.IntoContext(ctx, logger)
+
 	if err := mgr.GetFieldIndexer().IndexField(ctx, &v1.Account{}, apiKeySpecPath, func(obj client.Object) []string {
 		return []string{obj.(*v1.Account).Spec.APIKeySecret.Name}
 	}); err != nil {
@@ -89,6 +96,19 @@ func (r *NimAccountReconciler) SetupWithManager(mgr ctrl.Manager, ctx context.Co
 				}
 				return requests
 			})).
+		WithEventFilter(predicate.Funcs{
+			UpdateFunc: func(e event.UpdateEvent) bool {
+				if oldSecret, isSecret := e.ObjectOld.(*corev1.Secret); isSecret {
+					newSecret := e.ObjectNew.(*corev1.Secret)
+					return !semantic.EqualitiesOrDie().DeepDerivative(oldSecret.Data, newSecret.Data)
+				}
+				if oldAccount, isAccount := e.ObjectOld.(*v1.Account); isAccount {
+					newAccount := e.ObjectNew.(*v1.Account)
+					return !semantic.EqualitiesOrDie().DeepEqual(oldAccount.Spec, newAccount.Spec)
+				}
+				return false
+			},
+		}).
 		Complete(r)
 }
 
@@ -168,7 +188,7 @@ func (r *NimAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	meta.SetStatusCondition(&targetStatus.Conditions, makeAccountFailureCondition(account.Generation, gotApiKey))
 
 	// fetch available runtimes
-	availableRuntimes, runtimesErr := utils.GetAvailableNimRuntimes()
+	availableRuntimes, runtimesErr := utils.GetAvailableNimRuntimes(logger)
 	if runtimesErr != nil {
 		msg := "failed to fetch NIM available custom runtimes"
 		logger.V(1).Error(runtimesErr, msg)
@@ -181,7 +201,7 @@ func (r *NimAccountReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 	meta.SetStatusCondition(&targetStatus.Conditions, makeAccountFailureCondition(account.Generation, runtimesOk))
 
 	// validate api key
-	if err := utils.ValidateApiKey(apiKeyStr, availableRuntimes[0]); err != nil {
+	if err := utils.ValidateApiKey(logger, apiKeyStr, availableRuntimes); err != nil {
 		msg := "api key failed validation"
 		logger.Error(err, msg)
 		meta.SetStatusCondition(&targetStatus.Conditions, makeAccountFailureCondition(account.Generation, msg))
@@ -261,7 +281,7 @@ func (r *NimAccountReconciler) reconcileNimConfig(
 	ctx context.Context, ownerCfg *ssametav1.OwnerReferenceApplyConfiguration,
 	namespace, apiKey string, runtimes []utils.NimRuntime,
 ) (*corev1.ConfigMap, error) {
-	data, dErr := utils.GetNimModelData(apiKey, runtimes)
+	data, dErr := utils.GetNimModelData(log.FromContext(ctx), apiKey, runtimes)
 	if dErr != nil {
 		return nil, dErr
 	}
