@@ -18,6 +18,7 @@ package reconcilers
 import (
 	"context"
 	"fmt"
+	"github.com/opendatahub-io/odh-model-controller/internal/controller/constants"
 
 	"github.com/go-logr/logr"
 	kservev1beta1 "github.com/kserve/kserve/pkg/apis/serving/v1beta1"
@@ -84,6 +85,9 @@ func (r *KserveIstioPodMonitorReconciler) createDesiredResource(ctx context.Cont
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      istioPodMonitorName,
 			Namespace: isvc.Namespace,
+			Labels: map[string]string{
+				constants.RhoaiObservabilityLabel: "true",
+			},
 		},
 		Spec: v1.PodMonitorSpec{
 			Selector: metav1.LabelSelector{
