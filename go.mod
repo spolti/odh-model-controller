@@ -1,6 +1,8 @@
 module github.com/opendatahub-io/odh-model-controller
 
-go 1.21
+go 1.23.0
+
+toolchain go1.24.4
 
 require (
 	github.com/go-logr/logr v1.3.0
@@ -33,14 +35,14 @@ require (
 
 require (
 	cloud.google.com/go v0.111.0 // indirect
-	cloud.google.com/go/compute v1.23.3 // indirect
-	cloud.google.com/go/compute/metadata v0.2.3 // indirect
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/iam v1.1.5 // indirect
 	cloud.google.com/go/storage v1.35.1 // indirect
 	github.com/aws/aws-sdk-go v1.48.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blendle/zapdriver v1.3.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/containerd/platforms v0.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/evanphx/json-patch v5.7.0+incompatible // indirect
@@ -70,6 +72,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
+	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -98,7 +101,6 @@ require (
 	golang.org/x/time v0.4.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	google.golang.org/api v0.151.0 // indirect
-	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240116215550-a9fa1716bcac // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240116215550-a9fa1716bcac // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240116215550-a9fa1716bcac // indirect
@@ -116,11 +118,12 @@ require (
 )
 
 replace (
-	// Fixes CVE-2024-21626
-	github.com/containerd/containerd => github.com/containerd/containerd v1.7.13
+	// Fixes CVE-2024-25621
+	github.com/containerd/containerd => github.com/containerd/containerd v1.7.29
 
 	// CVE-2024-45339
 	github.com/golang/glog => github.com/golang/glog v1.2.4
+
 	// Fixes CVE-2022-21698 and CVE-2023-45142
 	// this dependency comes from k8s.io/component-base@v0.26.4 and k8s.io/apiextensions-apiserver@v0.26.4
 	// before removing it make sure that the next version of the related k8s dependencies contains the fix
@@ -128,6 +131,10 @@ replace (
 
 	// Fixes CVE-2024-45338
 	golang.org/x/net => golang.org/x/net v0.33.0
+
+	// Fixes CVE-2025-22868
+	golang.org/x/oauth2 => golang.org/x/oauth2 v0.27.0
+
 	// can be removed when the indirect depdency is in the same version or higher
 	// Fixes CVE-2024-24786 - Infinite loop in JSON unmarshaling in google.golang.org/protobuf
 	google.golang.org/protobuf => google.golang.org/protobuf v1.33.0
